@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ลอยกระทงคู่รักออนไลน์ - คืนเพ็ญเดือนสิบสอง</title>
+    <!-- นำเข้า Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- นำเข้าฟอนต์ภาษาไทยที่สวยงามจาก Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:ital,wght@0,400;0,600;0,700;1,400&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- นำเข้า Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                        handwriting: ['Mali', 'cursive'],
+                    },
+                    colors: {
+                        night: {
+                            950: '#040814',
+                            900: '#09122c',
+                            800: '#112047',
+                        },
+                        gold: {
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        },
+                        romantic: {
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                        }
+                    },
+                    animation: {
+                        'float-slow': 'floatSlow 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                        'flicker': 'flicker 1.5s infinite alternate',
+                    },
+                    keyframes: {
+                        floatSlow: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.8, transform: 'scale(1)' },
+                            '50%': { opacity: 1, transform: 'scale(1.05)' },
+                        },
+                        flicker: {
+                            '0%': { transform: 'scale(1) rotate(-1deg)', opacity: 0.9 },
+                            '50%': { transform: 'scale(1.06) rotate(1deg)', opacity: 1 },
+                            '100%': { transform: 'scale(0.96) rotate(-0.5deg)', opacity: 0.85 },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* การตั้งค่าพื้นฐานและป้องกันการเลื่อนหน้าจอที่ไม่พึงประสงค์ */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #040814;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Glassmorphism สไตล์หรูหรายามค่ำคืน */
+        .glass-panel {
+            background: rgba(13, 25, 58, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(253, 224, 71, 0.22);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-pill {
+            background: rgba(9, 18, 44, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Custom Scrollbar สำหรับหน้าต่างปรับแต่งกระทงบนมือถือ */
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(250, 204, 21, 0.35);
+            border-radius: 10px;
+        }
+
+        /* เอฟเฟกต์แสงเงาข้อความสีทอง */
+        .text-glow-gold {
+            text-shadow: 0 0 15px rgba(250, 204, 21, 0.55);
+        }
+        .text-glow-pink {
+            text-shadow: 0 0 15px rgba(244, 63, 94, 0.65);
+        }
+
+        /* ซ่อน UI ชั่วคราวในโหมดถ่ายรูปที่ระลึก */
+        body.memory-mode .ui-control {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(15px);
+        }
+        .ui-control {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+    </style>
+</head>
+<body class="text-slate-100 font-sans antialiased relative">
+
+    <!-- Canvas หลักสำหรับวาดท้องฟ้า ดวงจันทร์ โคมยี่เป็ง ผิวน้ำ กระทงคู่ และเอฟเฟกต์หัวใจ/พลุ -->
+    <canvas id="sceneCanvas" class="fixed inset-0 w-full h-full block z-0 cursor-pointer"></canvas>
+
+    <!-- แถบเมนูด้านบน (Header Controls) -->
+    <header class="ui-control fixed top-0 left-0 right-0 z-20 p-3 sm:p-5 flex items-center justify-between pointer-events-none">
+        <!-- โลโก้และชื่อเว็บ -->
+        <div class="glass-pill px-4 py-2 rounded-full flex items-center gap-2.5 pointer-events-auto shadow-lg">
+            <span class="text-xl sm:text-2xl animate-pulse">🌕</span>
+            <div>
+                <h1 class="text-sm sm:text-base font-semibold text-amber-300 tracking-wide text-glow-gold leading-tight">
+                    ลอยกระทงคู่รัก
+                </h1>
+                <p class="text-[11px] text-amber-100/70 hidden sm:block">อธิษฐานรักใต้แสงจันทร์คืนเพ็ญ</p>
+            </div>
+        </div>
+
+        <!-- ปุ่มควบคุมเสียงและถ่ายรูป -->
+        <div class="flex items-center gap-2 pointer-events-auto">
+            <!-- ปุ่มเปิด/ปิดเสียงบรรยากาศ -->
+            <button id="audioToggleBtn" onclick="toggleAudio()" title="เปิด/ปิดเสียงดนตรีไทยและสายน้ำ"
+                class="glass-pill hover:bg-white/10 active:scale-95 transition-all p-2.5 sm:px-4 sm:py-2 rounded-full flex items-center gap-2 text-amber-200 border border-amber-400/30 shadow-lg">
+                <i id="audioIcon" data-lucide="volume-x" class="w-4 h-4 sm:w-5 sm:h-5 text-rose-400"></i>
+                <span id="audioLabel" class="text-xs sm:text-sm font-medium hidden md:inline">เปิดเสียงบรรยากาศ</span>
+            </button>
+
+            <!-- ปุ่มถ่ายรูปที่ระลึก -->
+            <button id="captureBtn" onclick="openMemoryModal()" title="สร้างการ์ดถ่ายรูปที่ระลึก"
+                class="glass-pill hover:bg-amber-500/20 active:scale-95 transition-all p-2.5 sm:px-4 sm:py-2 rounded-full flex items-center gap-2 text-amber-200 border border-amber-400/30 shadow-lg">
+                <i data-lucide="camera" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-300"></i>
+                <span class="text-xs sm:text-sm font-medium hidden sm:inline">ถ่ายรูปที่ระลึก</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- หน้าต่างสร้างและปรับแต่งกระทงคู่ (Customizable Couple Krathong Modal/Drawer) -->
+    <div id="builderPanel" class="ui-control fixed inset-0 z-30 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/45 backdrop-blur-[2px] transition-opacity duration-300">
+        <div class="glass-panel w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 max-h-[88vh] overflow-y-auto custom-scroll relative border-t-2 sm:border border-amber-300/40 shadow-2xl">
+            
+            <!-- หัวข้อหน้าต่าง -->
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-500 to-amber-400 flex items-center justify-center shadow-md">
+                        <span class="text-lg">🪷</span>
+                    </div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-semibold text-amber-200">ประดิษฐ์กระทงคู่ของเรา</h2>
+                        <p class="text-xs text-slate-300">เลือกแบบกระทง ใส่ชื่อคู่รัก และเขียนคำอธิษฐาน</p>
+                    </div>
+                </div>
+                <button id="closeBuilderBtn" onclick="toggleBuilder(false)" class="hidden text-slate-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- พรีวิวกระทงแบบสด (Live SVG/Canvas Preview Box) -->
+            <div class="relative w-full h-36 sm:h-40 rounded-2xl bg-gradient-to-b from-[#07112e] to-[#0e2252] border border-amber-400/25 mb-5 flex flex-col items-center justify-center overflow-hidden shadow-inner">
+                <div class="absolute top-2 left-3 text-[11px] text-amber-200/70 flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3 h-3 text-amber-300"></i> ตัวอย่างกระทงคู่
+                </div>
+                <!-- ป้ายชื่อคู่รักลอยเหนือกระทง -->
+                <div id="previewNameTag" class="px-3 py-0.5 rounded-full bg-rose-500/25 border border-rose-300/40 text-xs font-handwriting text-pink-200 mb-1 shadow">
+                    ฉัน ❤️ เธอ
+                </div>
+                <canvas id="previewCanvas" width="220" height="110" class="w-[220px] h-[110px]"></canvas>
+            </div>
+
+            <!-- ฟอร์มปรับแต่ง -->
+            <div class="space-y-4">
+                <!-- 1. เลือกรูปแบบกระทง -->
+                <div>
+                    <label class="block text-xs font-medium text-amber-200 mb-2">1. เลือกรูปแบบฐานกระทง</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="baseSelector">
+                        <button type="button" data-base="banana" onclick="selectBase('banana')"
+                            class="base-btn active ring-2 ring-amber-400 bg-amber-500/20 p-2.5 rounded-xl border border-white/15 flex flex-col items-center gap-1 transition hover:bg-white/10">
+                            <span class="text-2xl">🍃</span>
+                            <span class="text-xs font-medium text-white">ใบตองคลาสสิก</span>
+                        </button>
+                        <button type="button" data-base="lotus" onclick="selectBase('lotus')"
+                            class="base-btn p-2.5 rounded-xl border border-white/15 bg-white/5 flex flex-col items-center gap-1 transition hover:bg-white/10">
+                            <span class="text-2xl">🪷</span>
+                            <span class="text-xs font-medium text-pink-200">ดอกบัวชมพู</span>
+                        </button>
+                        <button type="button" data-base="bread" onclick="selectBase('bread')"
+                            class="base-btn p-2.5 rounded-xl border border-white/15 bg-white/5 flex flex-col items-center gap-1 transition hover:bg-white/10">
+                            <span class="text-2xl">🍞</span>
+                            <span class="text-xs font-medium text-amber-200">ขนมปังหัวใจ</span>
+                        </button>
+                        <button type="button" data-base="coconut" onclick="selectBase('coconut')"
+                            class="base-btn p-2.5 rounded-xl border border-white/15 bg-white/5 flex flex-col items-center gap-1 transition hover:bg-white/10">
+                            <span class="text-2xl">🥥</span>
+                            <span class="text-xs font-medium text-orange-200">กะลามะพร้าว</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. เลือกของตกแต่งเสริม -->
+                <div>
+                    <label class="block text-xs font-medium text-amber-200 mb-2">2. ของตกแต่งมงคลและความรัก (เลือกได้หลายอย่าง)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                            <input type="checkbox" id="decHeartCandle" checked onchange="updatePreview()" class="accent-rose-500 w-4 h-4 rounded">
+                            <span class="text-base">🕯️</span>
+                            <span class="text-xs text-slate-200">เทียนคู่รูปหัวใจ</span>
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                            <input type="checkbox" id="decIncense" checked onchange="updatePreview()" class="accent-amber-400 w-4 h-4 rounded">
+                            <span class="text-base">🥢</span>
+                            <span class="text-xs text-slate-200">ธูปหอมอธิษฐาน</span>
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                            <input type="checkbox" id="decFlowers" checked onchange="updatePreview()" class="accent-pink-400 w-4 h-4 rounded">
+                            <span class="text-base">🌸</span>
+                            <span class="text-xs text-slate-200">ดอกไม้หลากสี</span>
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                            <input type="checkbox" id="decCoins" onchange="updatePreview()" class="accent-yellow-400 w-4 h-4 rounded">
+                            <span class="text-base">🪙</span>
+                            <span class="text-xs text-slate-200">เหรียญนำโชคคู่</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 3. กรอกชื่อของฉัน และ ชื่อของแฟน -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="myNameInput" class="block text-xs font-medium text-amber-200 mb-1">ชื่อของฉัน</label>
+                        <input type="text" id="myNameInput" maxlength="16" placeholder="เช่น นนท์" oninput="updatePreview()"
+                            class="w-full px-3.5 py-2 rounded-xl bg-night-950/70 border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+                    </div>
+                    <div>
+                        <label for="partnerNameInput" class="block text-xs font-medium text-pink-300 mb-1">ชื่อของแฟน ❤️</label>
+                        <input type="text" id="partnerNameInput" maxlength="16" placeholder="เช่น มายด์" oninput="updatePreview()"
+                            class="w-full px-3.5 py-2 rounded-xl bg-night-950/70 border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-rose-400 transition">
+                    </div>
+                </div>
+
+                <!-- 4. เขียนคำอธิษฐานร่วมกัน -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="wishInput" class="text-xs font-medium text-amber-200">คำอธิษฐานร่วมกัน</label>
+                        <button type="button" onclick="randomWish()" class="text-[11px] text-rose-300 hover:text-rose-200 flex items-center gap-1 underline">
+                            <i data-lucide="wand-2" class="w-3 h-3"></i> สุ่มคำอธิษฐานหวานๆ
+                        </button>
+                    </div>
+                    <textarea id="wishInput" rows="2" maxlength="140" placeholder="ขอให้เรารักกันมั่นคง อยู่เคียงข้างกันทุกเทศกาลลอยกระทงตลอดไป..."
+                        class="w-full px-3.5 py-2 rounded-xl bg-night-950/70 border border-white/15 text-sm font-handwriting text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 transition resize-none"></textarea>
+                </div>
+
+                <!-- ปุ่มกดอธิษฐานและลอยกระทงคู่ -->
+                <button type="button" onclick="launchCoupleKrathong()"
+                    class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 active:scale-[0.98] text-white font-semibold text-base shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <span>🙏</span>
+                    <span>อธิษฐานและลอยกระทงคู่</span>
+                    <span>✨</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- แถบเครื่องมือโต้ตอบด้านล่าง (แสดงหลังจากลอยกระทงแล้ว) -->
+    <div id="riverToolbar" class="ui-control hidden fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-[94%] max-w-xl">
+        <div class="glass-panel px-3 py-2.5 sm:px-5 sm:py-3 rounded-full flex items-center justify-between gap-2 shadow-2xl border border-amber-300/30">
+            
+            <!-- ปุ่มส่งหัวใจ & พลุรัก -->
+            <button onclick="triggerSendLove()"
+                class="flex-1 py-2 px-3 sm:px-4 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 active:scale-95 text-white text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 shadow-md shadow-rose-500/30 transition cursor-pointer">
+                <span class="text-base animate-bounce">💖</span>
+                <span>ส่งหัวใจ</span>
+            </button>
+
+            <!-- ปุ่มปล่อยโคมยี่เป็งคู่ -->
+            <button onclick="releaseCoupleLantern()"
+                class="py-2 px-3 sm:px-4 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 active:scale-95 text-amber-200 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition cursor-pointer">
+                <span class="text-base">🏮</span>
+                <span class="hidden sm:inline">ปล่อยโคมคู่</span>
+                <span class="sm:hidden">ปล่อยโคม</span>
+            </button>
+
+            <!-- ปุ่มดูคำอธิษฐาน -->
+            <button onclick="showWishCard(coupleKrathong)"
+                class="py-2 px-3 sm:px-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 active:scale-95 text-slate-100 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition cursor-pointer">
+                <i data-lucide="scroll-text" class="w-4 h-4 text-amber-300"></i>
+                <span class="hidden sm:inline">คำอธิษฐาน</span>
+            </button>
+
+            <!-- ปุ่มแก้ไข/ลอยใหม่ -->
+            <button onclick="toggleBuilder(true)" title="แก้ไขกระทงคู่"
+                class="p-2 sm:px-3.5 sm:py-2 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 active:scale-95 text-slate-300 text-xs flex items-center gap-1 transition cursor-pointer">
+                <i data-lucide="edit-3" class="w-4 h-4 text-pink-300"></i>
+                <span class="hidden md:inline">แก้ไขกระทง</span>
+            </button>
+        </div>
+        <p class="text-center text-[11px] text-amber-100/60 mt-1.5 drop-shadow">
+            💡 แตะที่กระทงในน้ำเพื่ออ่านคำอธิษฐาน หรือแตะที่ท้องฟ้าเพื่อจุดพลุหัวใจ
+        </p>
+    </div>
+
+    <!-- การ์ดแสดงคำอธิษฐานเมื่อคลิกที่กระทง (Wish Display Modal) -->
+    <div id="wishModal" onclick="closeWishModal(event)" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm transition-opacity">
+        <div onclick="event.stopPropagation()" class="glass-panel max-w-md w-full rounded-3xl p-6 text-center relative border border-amber-300/40 shadow-2xl transform transition-all scale-100">
+            <button onclick="closeWishModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-tr from-rose-500/30 to-amber-400/30 border border-amber-300/40 flex items-center justify-center text-3xl animate-float-slow">
+                🪷
+            </div>
+
+            <div class="inline-block px-4 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-pink-200 font-handwriting text-base sm:text-lg mb-3">
+                <span id="modalNames">ฉัน ❤️ เธอ</span>
+            </div>
+
+            <div class="bg-night-950/60 rounded-2xl p-4 border border-amber-400/20 mb-4">
+                <p class="text-xs text-amber-300/80 mb-1">✨ คำอธิษฐานใต้แสงจันทร์ ✨</p>
+                <p id="modalWishText" class="font-handwriting text-base sm:text-lg text-amber-100 leading-relaxed">
+                    "ขอให้เรารักกันมั่นคง อยู่เคียงข้างกันตลอดไป"
+                </p>
+            </div>
+
+            <div class="flex items-center justify-center gap-3">
+                <button onclick="triggerSendLove(); closeWishModal();" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-medium shadow-lg shadow-rose-500/30 hover:brightness-110 active:scale-95 transition flex items-center gap-1.5">
+                    <span>💖</span> ส่งหัวใจให้กระทงนี้
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- หน้าต่างการ์ดความทรงจำสำหรับแคปหน้าจอ (Capture Memory Modal) -->
+    <div id="memoryModal" onclick="closeMemoryModal(event)" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+        <div onclick="event.stopPropagation()" class="max-w-md w-full flex flex-col items-center gap-3">
+            
+            <!-- ตัวการ์ดที่ระลึกที่ออกแบบมาให้แคปหน้าจอได้สวยงาม -->
+            <div id="memoryCard" class="w-full rounded-3xl overflow-hidden border-2 border-amber-300/50 bg-gradient-to-b from-[#070f26] via-[#0d1c45] to-[#08122e] shadow-2xl p-5 text-center relative">
+                <!-- ลวดลายมุมการ์ด -->
+                <div class="flex items-center justify-between text-amber-300/70 text-xs mb-2">
+                    <span>🌕 คืนเพ็ญเดือนสิบสอง</span>
+                    <span id="memoryDate">ลอยกระทงออนไลน์</span>
+                </div>
+
+                <!-- รูปภาพsnapshotจาก Canvas -->
+                <div class="relative rounded-2xl overflow-hidden border border-amber-300/30 mb-4 shadow-inner bg-night-950">
+                    <img id="memorySnapshotImg" src="" alt="ภาพความทรงจำลอยกระทงคู่รัก" class="w-full h-56 object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#08122e] via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-2 left-0 right-0 text-center">
+                        <span id="memoryNames" class="px-4 py-1 rounded-full bg-rose-600/80 backdrop-blur-sm border border-pink-200/40 text-white font-handwriting text-sm sm:text-base shadow-lg">
+                            ฉัน ❤️ เธอ
+                        </span>
+                    </div>
+                </div>
+
+                <p id="memoryWish" class="font-handwriting text-amber-100 text-sm sm:text-base px-2 mb-3 leading-relaxed">
+                    "ขอให้ความรักของเราสว่างไสวเหมือนแสงเทียนบนผิวน้ำตลอดไป"
+                </p>
+
+                <div class="text-[11px] text-amber-300/60 flex items-center justify-center gap-1.5">
+                    <span>🪷</span> บันทึกความทรงจำแสนพิเศษของเราสองคน <span>✨</span>
+                </div>
+            </div>
+
+            <!-- ปุ่มจัดการด้านล่างการ์ด -->
+            <div class="flex flex-wrap items-center justify-center gap-2 w-full">
+                <button onclick="downloadMemoryImage()" class="px-4 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-night-950 font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-lg transition active:scale-95">
+                    <i data-lucide="download" class="w-4 h-4"></i> บันทึกรูปภาพ
+                </button>
+                <button onclick="toggleCleanView()" class="px-4 py-2.5 rounded-full glass-pill hover:bg-white/15 text-amber-200 text-xs sm:text-sm flex items-center gap-1.5 border border-amber-300/30 transition active:scale-95">
+                    <i data-lucide="eye-off" class="w-4 h-4"></i> ซ่อนปุ่มเพื่อแคปหน้าจอเต็ม
+                </button>
+                <button onclick="closeMemoryModal()" class="p-2.5 rounded-full glass-pill hover:bg-white/15 text-slate-300 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ปุ่มกลับมาแสดง UI เมื่ออยู่ในโหมดซ่อนปุ่มเต็มจอ -->
+    <button id="exitCleanViewBtn" onclick="exitCleanView()" class="hidden fixed bottom-5 right-5 z-50 glass-pill px-4 py-2 rounded-full text-xs text-amber-200 border border-amber-300/40 shadow-xl flex items-center gap-1.5 animate-pulse">
+        <i data-lucide="eye" class="w-4 h-4"></i> แสดงปุ่มควบคุม
+    </button>
+
+    <!-- Toast Notification แจ้งเตือนน่ารักๆ -->
+    <div id="toastMsg" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+        <div class="glass-pill px-4 py-2 rounded-full border border-pink-400/40 text-pink-100 text-xs sm:text-sm shadow-xl flex items-center gap-2">
+            <span id="toastIcon">💖</span>
+            <span id="toastText">ส่งความรักถึงกันแล้ว!</span>
+        </div>
+    </div>
+
+    <script>
+        // เริ่มต้นไอคอน Lucide
+        lucide.createIcons();
+
+        // ==========================================
+        // 1. การตั้งค่าสถานะหลัก (State Management)
+        // ==========================================
+        const state = {
+            baseType: 'banana', // banana, lotus, bread, coconut
+            decorations: {
+                heartCandle: true,
+                incense: true,
+                flowers: true,
+                coins: false
+            },
+            myName: '',
+            partnerName: '',
+            wish: 'ขอให้เรารักกันมั่นคง อยู่เคียงข้างกันทุกเทศกาลลอยกระทงตลอดไป',
+            isLaunched: false,
+            audioEnabled: false
+        };
+
+        // รายการคำอธิษฐานสุ่มสำหรับคู่รัก
+        const romanticWishes = [
+            "ขอให้สายน้ำพัดพาความทุกข์ออกไป และพัดพาความรักของเราให้มั่นคงตลอดไป",
+            "ลอยกระทงปีนี้มีเธอข้างๆ ปีต่อๆ ไปก็ขอให้มีเธอจับมือกันแบบนี้ทุกปีนะ",
+            "ขอให้แสงเทียนส่องนำทางให้ความรักของเราสดใส ราบรื่น และเข้าใจกันเสมอ",
+            "ไม่ว่าจะผ่านไปกี่คืนเพ็ญ หัวใจดวงนี้ก็ยังขออธิษฐานให้มีแค่เธอคนเดียว",
+            "ขอให้ความรักของเราเบ่งบานสวยงามเหมือนดอกบัว และอบอุ่นเหมือนแสงจันทร์คืนนี้"
+        ];
+
+        // ==========================================
+        // 2. ระบบ Canvas และแอนิเมชันฉากหลังสุดโรแมนติก
+        // ==========================================
+        const canvas = document.getElementById('sceneCanvas');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const pCtx = previewCanvas.getContext('2d');
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let horizonY = height * 0.56; // เส้นขอบฟ้าแบ่งท้องฟ้ากับผิวน้ำ
+
+        // วัตถุในฉาก
+        let stars = [];
+        let lanterns = [];
+        let ambientKrathongs = [];
+        let particles = []; // กลีบดอกไม้, หัวใจ, พลุ, ประกายไฟ
+        let ripples = [];   // ระลอกคลื่นน้ำ
+
+        // กระทงคู่รักของผู้เล่น
+        let coupleKrathong = null;
+
+        // ปรับขนาด Canvas ให้คมชัดบนทุกหน้าจอ (รองรับ Retina / Mobile)
+        function resizeCanvas() {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            horizonY = height * 0.55;
+
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            initStars();
+        }
+
+        // สร้างดวงดาวระยิบระยับบนท้องฟ้า
+        function initStars() {
+            stars = [];
+            const starCount = Math.floor((width * horizonY) / 4500);
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * (horizonY - 20),
+                    radius: Math.random() * 1.6 + 0.4,
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.02 + 0.005,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // สร้างโคมยี่เป็งลอยขึ้นฟ้า
+        function spawnLantern(isCoupleSpecial = false, customLabel = '') {
+            const scale = isCoupleSpecial ? 1.15 : (Math.random() * 0.55 + 0.35);
+            lanterns.push({
+                x: isCoupleSpecial ? width * (0.35 + Math.random() * 0.3) : Math.random() * width,
+                y: horizonY - (isCoupleSpecial ? 10 : Math.random() * 60),
+                vx: (Math.random() - 0.5) * 0.35,
+                vy: -(Math.random() * 0.45 + 0.35) * (isCoupleSpecial ? 1.1 : 1),
+                scale: scale,
+                wobble: Math.random() * Math.PI * 2,
+                isSpecial: isCoupleSpecial,
+                label: customLabel
+            });
+        }
+
+        // สร้างกระทงบรรยากาศของคู่อื่นๆ ลอยอยู่ไกลๆ
+        function initAmbientKrathongs() {
+            ambientKrathongs = [];
+            const bases = ['banana', 'lotus', 'bread', 'coconut'];
+            for (let i = 0; i < 6; i++) {
+                const depth = 0.25 + Math.random() * 0.45; // 0 = ไกลขอบฟ้า, 1 = ใกล้ฝั่ง
+                ambientKrathongs.push({
+                    x: Math.random() * width,
+                    y: horizonY + 25 + depth * (height - horizonY - 90),
+                    vx: (Math.random() * 0.25 + 0.12) * (Math.random() > 0.5 ? 1 : -1),
+                    scale: 0.45 + depth * 0.4,
+                    baseType: bases[Math.floor(Math.random() * bases.length)],
+                    bobPhase: Math.random() * Math.PI * 2,
+                    decorations: { heartCandle: i % 2 === 0, incense: true, flowers: true, coins: false }
+                });
+            }
+        }
+
+        // ==========================================
+        // 3. ฟังก์ชันวาดกระทงคู่สุดประณีต (Vector Art on Canvas)
+        // ==========================================
+        function drawKrathongArt(context, x, y, scale, config, time, isCouple = false) {
+            context.save();
+            context.translate(x, y);
+            context.scale(scale, scale);
+
+            // 1. แสงสะท้อนสีทองอบอุ่นบนผิวน้ำใต้กระทง
+            const glowGrad = context.createRadialGradient(0, 12, 4, 0, 12, 75);
+            glowGrad.addColorStop(0, isCouple ? 'rgba(255, 220, 120, 0.45)' : 'rgba(255, 200, 90, 0.25)');
+            glowGrad.addColorStop(0.6, 'rgba(244, 63, 94, 0.08)');
+            glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            context.fillStyle = glowGrad;
+            context.beginPath();
+            context.ellipse(0, 14, 75, 24, 0, 0, Math.PI * 2);
+            context.fill();
+
+            // 2. วาดฐานกระทงตามรูปแบบที่เลือก
+            if (config.baseType === 'banana') {
+                // กระทงใบตองคลาสสิกพร้อมกลีบใบตองพับรอบฐาน
+                context.fillStyle = '#14532d';
+                context.beginPath();
+                context.ellipse(0, 8, 46, 16, 0, 0, Math.PI * 2);
+                context.fill();
+
+                // กลีบใบตองชั้นนอก
+                for (let i = -4; i <= 4; i++) {
+                    const px = i * 9.5;
+                    const py = Math.abs(i) * 0.8;
+                    context.fillStyle = i % 2 === 0 ? '#16a34a' : '#22c55e';
+                    context.beginPath();
+                    context.moveTo(px - 7, py + 8);
+                    context.quadraticCurveTo(px, py - 14, px + 7, py + 8);
+                    context.closePath();
+                    context.fill();
+                    context.strokeStyle = '#86efac';
+                    context.lineWidth = 0.6;
+                    context.stroke();
+                }
+            } else if (config.baseType === 'lotus') {
+                // กระทงดอกบัวสีชมพูหวานซ้อนหลายชั้น
+                for (let i = -4; i <= 4; i++) {
+                    const px = i * 10;
+                    const py = Math.abs(i) * 1.1;
+                    const petalGrad = context.createLinearGradient(0, -14, 0, 12);
+                    petalGrad.addColorStop(0, '#fbcfe8');
+                    petalGrad.addColorStop(0.5, '#f472b6');
+                    petalGrad.addColorStop(1, '#be185d');
+                    context.fillStyle = petalGrad;
+                    context.beginPath();
+                    context.moveTo(px - 9, py + 8);
+                    context.quadraticCurveTo(px, py - 16, px + 9, py + 8);
+                    context.closePath();
+                    context.fill();
+                }
+            } else if (config.baseType === 'bread') {
+                // กระทงขนมปังรูปหัวใจสีน้ำตาลทองน่ารัก
+                const breadGrad = context.createLinearGradient(0, -10, 0, 18);
+                breadGrad.addColorStop(0, '#fcd34d');
+                breadGrad.addColorStop(0.6, '#d97706');
+                breadGrad.addColorStop(1, '#92400e');
+                context.fillStyle = breadGrad;
+                context.beginPath();
+                context.ellipse(0, 6, 46, 17, 0, 0, Math.PI * 2);
+                context.fill();
+                context.strokeStyle = '#fef08a';
+                context.lineWidth = 1.2;
+                context.stroke();
+
+                // ลายหัวใจเล็กๆ รอบขอบขนมปัง
+                context.fillStyle = '#fb7185';
+                for (let i = -2; i <= 2; i++) {
+                    context.beginPath();
+                    context.arc(i * 14, 9, 3, 0, Math.PI * 2);
+                    context.fill();
+                }
+            } else if (config.baseType === 'coconut') {
+                // กระทงกะลามะพร้าวขัดมันอบอุ่น
+                const cocoGrad = context.createLinearGradient(0, -4, 0, 22);
+                cocoGrad.addColorStop(0, '#78350f');
+                cocoGrad.addColorStop(1, '#451a03');
+                context.fillStyle = cocoGrad;
+                context.beginPath();
+                context.arc(0, 4, 42, 0, Math.PI, false);
+                context.ellipse(0, 4, 42, 12, 0, 0, Math.PI * 2);
+                context.fill();
+                context.strokeStyle = '#d97706';
+                context.lineWidth = 1;
+                context.stroke();
+            }
+
+            // 3. ของตกแต่ง: เหรียญนำโชคคู่
+            if (config.decorations.coins) {
+                context.fillStyle = '#facc15';
+                context.strokeStyle = '#ca8a04';
+                context.lineWidth = 1;
+                [-16, 16].forEach(cx => {
+                    context.beginPath();
+                    context.ellipse(cx, 5, 5, 3, 0, 0, Math.PI * 2);
+                    context.fill();
+                    context.stroke();
+                });
+            }
+
+            // 4. ของตกแต่ง: ดอกไม้หลากสี (ดาวเรือง บานไม่รู้โรย กล้วยไม้)
+            if (config.decorations.flowers) {
+                const flowerColors = ['#facc15', '#fb7185', '#c084fc', '#fb923c', '#f43f5e'];
+                for (let i = -3; i <= 3; i++) {
+                    context.fillStyle = flowerColors[(i + 3) % flowerColors.length];
+                    context.beginPath();
+                    context.arc(i * 10.5, 2 + Math.abs(i) * 0.6, 5.2, 0, Math.PI * 2);
+                    context.fill();
+                    context.fillStyle = '#fef9c3';
+                    context.beginPath();
+                    context.arc(i * 10.5, 2 + Math.abs(i) * 0.6, 1.8, 0, Math.PI * 2);
+                    context.fill();
+                }
+            }
+
+            // 5. ของตกแต่ง: ธูปหอมอธิษฐาน (3 ดอก พร้อมจุดแดงติดไฟ)
+            if (config.decorations.incense) {
+                [-5, 0, 5].forEach((ix, idx) => {
+                    const tilt = (idx - 1) * 0.08;
+                    context.save();
+                    context.translate(ix, 0);
+                    context.rotate(tilt);
+                    context.strokeStyle = '#a16207';
+                    context.lineWidth = 1.6;
+                    context.beginPath();
+                    context.moveTo(0, 2);
+                    context.lineTo(0, -34);
+                    context.stroke();
+
+                    // ปลายธูปสีแดงเรืองแสง
+                    context.fillStyle = '#ef4444';
+                    context.beginPath();
+                    context.arc(0, -35, 1.8, 0, Math.PI * 2);
+                    context.fill();
+                    context.restore();
+                });
+            }
+
+            // 6. เทียน (เทียนคู่รูปหัวใจ หรือ เทียนเล่มเดียว)
+            const flicker = Math.sin(time * 0.012) * 1.5;
+            if (config.decorations.heartCandle) {
+                // เทียนคู่สีชมพู-ทอง สำหรับคู่รัก
+                [-11, 11].forEach((cx, idx) => {
+                    context.fillStyle = idx === 0 ? '#fb7185' : '#f43f5e';
+                    context.fillRect(cx - 2.5, -22, 5, 22);
+                    
+                    // เปลวเทียน
+                    drawCandleFlame(context, cx, -24 + flicker * (idx === 0 ? 1 : -1));
+                });
+
+                // หัวใจดวงน้อยเชื่อมตรงกลางระหว่างเทียนคู่
+                context.fillStyle = '#fda4af';
+                context.font = '12px sans-serif';
+                context.textAlign = 'center';
+                context.fillText('❤️', 0, -11 + Math.sin(time * 0.005) * 1.5);
+            } else {
+                // เทียนสีเหลืองทองมาตรฐาน
+                context.fillStyle = '#fde047';
+                context.fillRect(-3, -24, 6, 24);
+                drawCandleFlame(context, 0, -26 + flicker);
+            }
+
+            context.restore();
+        }
+
+        // วาดเปลวเทียนพร้อมรัศมีแสง
+        function drawCandleFlame(context, x, y) {
+            const halo = context.createRadialGradient(x, y - 4, 1, x, y - 4, 18);
+            halo.addColorStop(0, 'rgba(254, 240, 138, 0.85)');
+            halo.addColorStop(0.5, 'rgba(251, 146, 60, 0.3)');
+            halo.addColorStop(1, 'rgba(251, 146, 60, 0)');
+            context.fillStyle = halo;
+            context.beginPath();
+            context.arc(x, y - 4, 18, 0, Math.PI * 2);
+            context.fill();
+
+            context.fillStyle = '#fef9c3';
+            context.beginPath();
+            context.moveTo(x, y - 11);
+            context.quadraticCurveTo(x + 4.5, y - 3, x, y + 1);
+            context.quadraticCurveTo(x - 4.5, y - 3, x, y - 11);
+            context.fill();
+        }
+
+        // อัปเดตพรีวิวกระทงในหน้าต่างปรับแต่ง
+        function updatePreview() {
+            state.decorations.heartCandle = document.getElementById('decHeartCandle').checked;
+            state.decorations.incense = document.getElementById('decIncense').checked;
+            state.decorations.flowers = document.getElementById('decFlowers').checked;
+            state.decorations.coins = document.getElementById('decCoins').checked;
+
+            const n1 = document.getElementById('myNameInput').value.trim() || 'ฉัน';
+            const n2 = document.getElementById('partnerNameInput').value.trim() || 'เธอ';
+            document.getElementById('previewNameTag').textContent = `${n1} ❤️ ${n2}`;
+
+            pCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            // วาดผิวน้ำจำลองในกล่องพรีวิว
+            pCtx.strokeStyle = 'rgba(147, 197, 253, 0.25)';
+            pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            pCtx.ellipse(110, 82, 72, 16, 0, 0, Math.PI * 2);
+            pCtx.stroke();
+
+            drawKrathongArt(pCtx, 110, 72, 1.35, state, performance.now(), true);
+        }
+
+        // ==========================================
+        // 4. ระบบวาดฉากหลัก (Sky, Moon, Lanterns, River, Particles)
+        // ==========================================
+        function renderScene(time) {
+            ctx.clearRect(0, 0, width, height);
+
+            // --- A. วาดท้องฟ้ายามค่ำคืน (Gradient) ---
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, '#030612');
+            skyGrad.addColorStop(0.55, '#091436');
+            skyGrad.addColorStop(1, '#14285c');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, width, horizonY);
+
+            // --- B. วาดดวงดาวระยิบระยับ ---
+            stars.forEach(star => {
+                const twinkle = 0.4 + 0.6 * Math.abs(Math.sin(time * star.speed * 0.1 + star.phase));
+                ctx.fillStyle = `rgba(255, 252, 230, ${twinkle})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // --- C. วาดพระจันทร์เต็มดวงสีเหลืองนวล ---
+            const moonX = width * 0.78;
+            const moonY = horizonY * 0.32;
+            const moonRadius = Math.min(width, height) * 0.085;
+
+            // รัศมีแสงจันทร์ฟุ้งกระจาย
+            const moonHalo = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.8, moonX, moonY, moonRadius * 4.2);
+            moonHalo.addColorStop(0, 'rgba(254, 249, 195, 0.35)');
+            moonHalo.addColorStop(0.4, 'rgba(253, 224, 71, 0.12)');
+            moonHalo.addColorStop(1, 'rgba(253, 224, 71, 0)');
+            ctx.fillStyle = moonHalo;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonRadius * 4.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ดวงจันทร์
+            const moonGrad = ctx.createRadialGradient(moonX - moonRadius * 0.25, moonY - moonRadius * 0.25, 5, moonX, moonY, moonRadius);
+            moonGrad.addColorStop(0, '#fefce8');
+            moonGrad.addColorStop(0.7, '#fef08a');
+            moonGrad.addColorStop(1, '#eab308');
+            ctx.fillStyle = moonGrad;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // --- D. วาดโคมยี่เป็งลอยขึ้นฟ้า ---
+            for (let i = lanterns.length - 1; i >= 0; i--) {
+                const l = lanterns[i];
+                l.wobble += 0.02;
+                l.x += l.vx + Math.sin(l.wobble) * 0.25;
+                l.y += l.vy;
+
+                drawLantern(l, time);
+
+                if (l.y < -60) {
+                    lanterns.splice(i, 1);
+                }
+            }
+            // รักษาจำนวนโคมบรรยากาศบนฟ้า
+            if (lanterns.length < 7 && Math.random() < 0.015) {
+                spawnLantern(false);
+            }
+
+            // --- E. วาดเงาแนวต้นไม้และวัดริมฝั่งแม่น้ำ (Silhouette) ---
+            drawRiverbankSilhouette();
+
+            // --- F. วาดผิวน้ำและเงาสะท้อนแสงจันทร์ ---
+            const riverGrad = ctx.createLinearGradient(0, horizonY, 0, height);
+            riverGrad.addColorStop(0, '#0a193d');
+            riverGrad.addColorStop(0.35, '#07122e');
+            riverGrad.addColorStop(1, '#030817');
+            ctx.fillStyle = riverGrad;
+            ctx.fillRect(0, horizonY, width, height - horizonY);
+
+            // เงาแสงจันทร์ระยิบระยับบนผิวน้ำ
+            for (let y = horizonY + 8; y < height; y += 7) {
+                const progress = (y - horizonY) / (height - horizonY);
+                const waveOffset = Math.sin(y * 0.08 + time * 0.003) * (15 + progress * 25);
+                const shimmerWidth = (18 + progress * 55) * (0.7 + 0.3 * Math.sin(y * 0.2 - time * 0.005));
+                ctx.fillStyle = `rgba(254, 240, 138, ${0.18 * (1 - progress * 0.5)})`;
+                ctx.beginPath();
+                ctx.ellipse(moonX + waveOffset, y, shimmerWidth, 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // คลื่นระลอกน้ำเบาๆ ทั่วแม่น้ำ
+            ctx.strokeStyle = 'rgba(147, 197, 253, 0.08)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 18; i++) {
+                const wy = horizonY + 20 + ((i * 37 + time * 0.01) % (height - horizonY - 20));
+                const wx = ((i * 193) % width) + Math.sin(time * 0.001 + i) * 30;
+                ctx.beginPath();
+                ctx.moveTo(wx - 35, wy);
+                ctx.quadraticCurveTo(wx, wy - 2, wx + 35, wy);
+                ctx.stroke();
+            }
+
+            // --- G. วาดระลอกน้ำรอบกระทง (Ripples) ---
+            for (let i = ripples.length - 1; i >= 0; i--) {
+                const r = ripples[i];
+                r.radius += 0.45;
+                r.alpha -= 0.008;
+                if (r.alpha <= 0) {
+                    ripples.splice(i, 1);
+                    continue;
+                }
+                ctx.strokeStyle = `rgba(253, 224, 71, ${r.alpha})`;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.ellipse(r.x, r.y, r.radius, r.radius * 0.32, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // --- H. วาดกระทงบรรยากาศของคู่อื่นๆ ---
+            ambientKrathongs.forEach(ak => {
+                ak.x += ak.vx;
+                if (ak.x > width + 80) ak.x = -80;
+                if (ak.x < -80) ak.x = width + 80;
+                const bobY = Math.sin(time * 0.0025 + ak.bobPhase) * 2.5;
+                drawKrathongArt(ctx, ak.x, ak.y + bobY, ak.scale, ak, time, false);
+            });
+
+            // --- I. วาดกระทงคู่รักของเรา (Hero Krathong) ---
+            if (coupleKrathong) {
+                updateAndDrawCoupleKrathong(time);
+            }
+
+            // --- J. วาดเอฟเฟกต์หัวใจ กลีบดอกไม้ และพลุ ---
+            updateAndDrawParticles();
+
+            requestAnimationFrame(renderScene);
+        }
+
+        // วาดโคมยี่เป็ง
+        function drawLantern(l, time) {
+            ctx.save();
+            ctx.translate(l.x, l.y);
+            ctx.scale(l.scale, l.scale);
+
+            const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, 38);
+            glow.addColorStop(0, l.isSpecial ? 'rgba(251, 113, 133, 0.55)' : 'rgba(251, 146, 60, 0.45)');
+            glow.addColorStop(1, 'rgba(251, 146, 60, 0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(0, 0, 38, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ตัวโคม
+            const bodyGrad = ctx.createLinearGradient(0, -18, 0, 16);
+            if (l.isSpecial) {
+                bodyGrad.addColorStop(0, '#ffe4e6');
+                bodyGrad.addColorStop(0.5, '#fb7185');
+                bodyGrad.addColorStop(1, '#e11d48');
+            } else {
+                bodyGrad.addColorStop(0, '#fef08a');
+                bodyGrad.addColorStop(0.5, '#fb923c');
+                bodyGrad.addColorStop(1, '#ea580c');
+            }
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath();
+            ctx.moveTo(-11, -16);
+            ctx.quadraticCurveTo(-16, 0, -9, 15);
+            ctx.lineTo(9, 15);
+            ctx.quadraticCurveTo(16, 0, 11, -16);
+            ctx.closePath();
+            ctx.fill();
+
+            // ป้ายชื่อบนโคมคู่พิเศษ
+            if (l.isSpecial && l.label) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.font = '11px Mali, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(l.label, 0, 29);
+            }
+
+            ctx.restore();
+        }
+
+        // วาดทิวทัศน์เงามืดริมฝั่งแม่น้ำ
+        function drawRiverbankSilhouette() {
+            ctx.fillStyle = '#04091a';
+            ctx.beginPath();
+            ctx.moveTo(0, horizonY);
+            for (let x = 0; x <= width; x += 40) {
+                const treeH = 12 + Math.sin(x * 0.03) * 8 + Math.cos(x * 0.07) * 6;
+                ctx.lineTo(x, horizonY - treeH);
+            }
+            ctx.lineTo(width, horizonY);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // อัปเดตและวาดกระทงคู่ของเรา
+        function updateAndDrawCoupleKrathong(time) {
+            const k = coupleKrathong;
+
+            // แอนิเมชันค่อยๆ ลอยลงสู่จุดกลางแม่น้ำอย่างนุ่มนวล
+            if (k.introProgress < 1) {
+                k.introProgress += 0.012;
+                const ease = 1 - Math.pow(1 - k.introProgress, 3);
+                k.x = k.startX + (k.targetX - k.startX) * ease;
+                k.y = k.startY + (k.targetY - k.startY) * ease;
+                k.scale = 1.55 - 0.25 * ease;
+            } else {
+                // ลอยเอื่อยๆ ไปตามสายน้ำอย่างนุ่มนวลและวนกลับมาอย่างโรแมนติก
+                k.x += 0.22;
+                if (k.x > width + 110) {
+                    k.x = -110;
+                }
+            }
+
+            const bobY = Math.sin(time * 0.003) * 3.5;
+            const currentY = k.y + bobY;
+
+            // สร้างระลอกน้ำรอบกระทงเป็นระยะ
+            if (Math.random() < 0.04) {
+                ripples.push({ x: k.x, y: currentY + 12, radius: 35 * k.scale, alpha: 0.45 });
+            }
+
+            // วาดตัวกระทงคู่
+            drawKrathongArt(ctx, k.x, currentY, k.scale, k, time, true);
+
+            // วาดป้ายชื่อคู่รักน่ารักๆ ลอยเหนือกระทง
+            drawCoupleNameBadge(k.x, currentY - 62 * k.scale, `${k.myName} ❤️ ${k.partnerName}`);
+        }
+
+        // วาดป้ายชื่อคู่รักบนผิวน้ำ
+        function drawCoupleNameBadge(x, y, text) {
+            ctx.save();
+            ctx.font = '600 14px Mali, Prompt, sans-serif';
+            const textMetrics = ctx.measureText(text);
+            const padX = 14;
+            const boxW = textMetrics.width + padX * 2;
+            const boxH = 28;
+
+            // พื้นหลังป้ายชื่อแบบโปร่งแสงขอบชมพูทอง
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+            ctx.strokeStyle = 'rgba(251, 113, 133, 0.75)';
+            ctx.lineWidth = 1.2;
+
+            ctx.beginPath();
+            ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 14);
+            ctx.fill();
+            ctx.stroke();
+
+            // ข้อความชื่อคู่รัก
+            ctx.fillStyle = '#ffe4e6';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x, y + 1);
+            ctx.restore();
+        }
+
+        // ==========================================
+        // 5. เอฟเฟกต์พลุหัวใจและกลีบดอกไม้โปรยปราย
+        // ==========================================
+        function spawnHeartFirework(cx, cy) {
+            const colors = ['#fb7185', '#f43f5e', '#fde047', '#f472b6', '#fda4af'];
+            const count = 34;
+            for (let i = 0; i < count; i++) {
+                const t = (Math.PI * 2 * i) / count;
+                // สมการรูปหัวใจ (Heart Parametric Equation)
+                const hx = 16 * Math.pow(Math.sin(t), 3);
+                const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                const speed = 0.16 + Math.random() * 0.05;
+
+                particles.push({
+                    x: cx,
+                    y: cy,
+                    vx: hx * speed,
+                    vy: hy * speed,
+                    alpha: 1,
+                    decay: 0.012 + Math.random() * 0.008,
+                    color: colors[i % colors.length],
+                    size: Math.random() * 3 + 2.5,
+                    type: 'spark'
+                });
+            }
+        }
+
+        function spawnPetalShower(targetX, targetY) {
+            const emojis = ['🌸', '💖', '✨', '🌹', '💕'];
+            for (let i = 0; i < 22; i++) {
+                particles.push({
+                    x: targetX + (Math.random() - 0.5) * 160,
+                    y: targetY - 120 - Math.random() * 90,
+                    vx: (Math.random() - 0.5) * 1.2,
+                    vy: 1.1 + Math.random() * 1.4,
+                    alpha: 1,
+                    decay: 0.009,
+                    emoji: emojis[Math.floor(Math.random() * emojis.length)],
+                    size: 16 + Math.random() * 8,
+                    wobble: Math.random() * Math.PI * 2,
+                    type: 'emoji'
+                });
+            }
+        }
+
+        function updateAndDrawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                if (p.type === 'spark') {
+                    p.vy += 0.03; // แรงโน้มถ่วงเบาๆ
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.type === 'emoji') {
+                    p.wobble += 0.05;
+                    p.x += Math.sin(p.wobble) * 0.6;
+                    ctx.font = `${p.size}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.emoji, p.x, p.y);
+                }
+                ctx.restore();
+            }
+        }
+
+        // ==========================================
+        // 6. ระบบเสียงบรรยากาศสังเคราะห์ด้วย Web Audio API
+        // (ดนตรีไทยบรรเลงเบาๆ สเกลเพนทาโทนิก + เสียงสายน้ำไหล)
+        // ==========================================
+        let audioCtx = null;
+        let waterNoiseNode = null;
+        let masterGain = null;
+        let melodyTimer = null;
+
+        function initAndStartAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                masterGain.connect(audioCtx.destination);
+
+                // 1. สร้างเสียงสายน้ำไหลนุ่มๆ (Filtered Pink Noise)
+                const bufferSize = audioCtx.sampleRate * 3;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.025;
+                    b6 = white * 0.115926;
+                }
+
+                waterNoiseNode = audioCtx.createBufferSource();
+                waterNoiseNode.buffer = noiseBuffer;
+                waterNoiseNode.loop = true;
+
+                const waterFilter = audioCtx.createBiquadFilter();
+                waterFilter.type = 'lowpass';
+                waterFilter.frequency.setValueAtTime(380, audioCtx.currentTime);
+
+                const waterGain = audioCtx.createGain();
+                waterGain.gain.setValueAtTime(0.45, audioCtx.currentTime);
+
+                waterNoiseNode.connect(waterFilter);
+                waterFilter.connect(waterGain);
+                waterGain.connect(masterGain);
+                waterNoiseNode.start();
+
+                // 2. เริ่มบรรเลงทำนองขิม/ระนาดไทย Pentatonic เบาๆ
+                startThaiMelodyLoop();
+            }
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            masterGain.gain.setTargetAtTime(0.35, audioCtx.currentTime, 0.4);
+        }
+
+        function startThaiMelodyLoop() {
+            // โน้ตสเกลเพนทาโทนิกไทย (C5, D5, E5, G5, A5, C6)
+            const thaiNotes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+            let step = 0;
+
+            melodyTimer = setInterval(() => {
+                if (!state.audioEnabled || !audioCtx) return;
+
+                // เล่นโน้ตทำนองนุ่มนวลคล้ายเสียงขิม
+                const freq = thaiNotes[(step * 2 + Math.floor(Math.random() * 3)) % thaiNotes.length];
+                playKhimNote(freq);
+                step++;
+            }, 1350);
+        }
+
+        function playKhimNote(freq) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const noteGain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+
+            noteGain.gain.setValueAtTime(0.001, now);
+            noteGain.gain.exponentialRampToValueAtTime(0.14, now + 0.04);
+            noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+
+            osc.connect(noteGain);
+            noteGain.connect(masterGain);
+
+            osc.start(now);
+            osc.stop(now + 2.3);
+        }
+
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            const iconEl = document.getElementById('audioIcon');
+            const labelEl = document.getElementById('audioLabel');
+
+            if (state.audioEnabled) {
+                initAndStartAudio();
+                iconEl.setAttribute('data-lucide', 'volume-2');
+                iconEl.classList.remove('text-rose-400');
+                iconEl.classList.add('text-amber-300');
+                labelEl.textContent = 'กำลังเล่นเสียงบรรยากาศ';
+                showToast('🎶', 'เปิดเสียงดนตรีไทยและสายน้ำแล้ว');
+            } else {
+                if (masterGain && audioCtx) {
+                    masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+                }
+                iconEl.setAttribute('data-lucide', 'volume-x');
+                iconEl.classList.remove('text-amber-300');
+                iconEl.classList.add('text-rose-400');
+                labelEl.textContent = 'เปิดเสียงบรรยากาศ';
+            }
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 7. การโต้ตอบของผู้ใช้ (Interactive Controls)
+        // ==========================================
+        function selectBase(base) {
+            state.baseType = base;
+            document.querySelectorAll('.base-btn').forEach(btn => {
+                if (btn.dataset.base === base) {
+                    btn.classList.add('ring-2', 'ring-amber-400', 'bg-amber-500/20');
+                    btn.classList.remove('bg-white/5');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-500/20');
+                    btn.classList.add('bg-white/5');
+                }
+            });
+            updatePreview();
+        }
+
+        function randomWish() {
+            const wishBox = document.getElementById('wishInput');
+            const randomIdx = Math.floor(Math.random() * romanticWishes.length);
+            wishBox.value = romanticWishes[randomIdx];
+            playKhimNote(783.99);
+        }
+
+        function toggleBuilder(show) {
+            const panel = document.getElementById('builderPanel');
+            if (show) {
+                panel.classList.remove('hidden');
+                if (state.isLaunched) {
+                    document.getElementById('closeBuilderBtn').classList.remove('hidden');
+                }
+                updatePreview();
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        // ปล่อยกระทงคู่ลงสู่แม่น้ำ
+        function launchCoupleKrathong() {
+            const myName = document.getElementById('myNameInput').value.trim() || 'ฉัน';
+            const partnerName = document.getElementById('partnerNameInput').value.trim() || 'เธอ';
+            const wishText = document.getElementById('wishInput').value.trim() || romanticWishes[0];
+
+            state.myName = myName;
+            state.partnerName = partnerName;
+            state.wish = wishText;
+            state.isLaunched = true;
+
+            // สร้างหรืออัปเดตกระทงคู่บนแม่น้ำ
+            coupleKrathong = {
+                baseType: state.baseType,
+                decorations: { ...state.decorations },
+                myName: myName,
+                partnerName: partnerName,
+                wish: wishText,
+                startX: width * 0.5,
+                startY: height - 30,
+                targetX: width * 0.45,
+                targetY: horizonY + (height - horizonY) * 0.48,
+                x: width * 0.5,
+                y: height - 30,
+                scale: 1.55,
+                introProgress: 0
+            };
+
+            // ปิดหน้าต่างปรับแต่งและแสดงแถบเครื่องมือริมน้ำ
+            toggleBuilder(false);
+            document.getElementById('riverToolbar').classList.remove('hidden');
+
+            // เอฟเฟกต์ฉลองการลอยกระทงคู่
+            spawnPetalShower(coupleKrathong.targetX, coupleKrathong.targetY);
+            spawnHeartFirework(width * 0.35, horizonY * 0.42);
+            spawnLantern(true, `${myName} ❤️ ${partnerName}`);
+
+            // เปิดเสียงอัตโนมัติถ้ายังไม่ได้เปิด (ตามการกดปุ่มของผู้ใช้)
+            if (!state.audioEnabled) {
+                toggleAudio();
+            }
+
+            showToast('🪷', `ลอยกระทงคู่ของ ${myName} & ${partnerName} สำเร็จ!`);
+        }
+
+        // กดปุ่มส่งหัวใจ (Send Love)
+        function triggerSendLove() {
+            if (!coupleKrathong) return;
+            spawnPetalShower(coupleKrathong.x, coupleKrathong.y);
+            spawnHeartFirework(
+                width * (0.25 + Math.random() * 0.5),
+                horizonY * (0.25 + Math.random() * 0.35)
+            );
+            ripples.push({ x: coupleKrathong.x, y: coupleKrathong.y + 12, radius: 40, alpha: 0.8 });
+            if (state.audioEnabled) playKhimNote(1046.50);
+            showToast('💖', `ส่งความรักให้ ${coupleKrathong.myName} ❤️ ${coupleKrathong.partnerName}`);
+        }
+
+        // กดปุ่มปล่อยโคมยี่เป็งคู่
+        function releaseCoupleLantern() {
+            const label = coupleKrathong ? `${coupleKrathong.myName} ❤️ ${coupleKrathong.partnerName}` : 'รักนิรันดร์';
+            spawnLantern(true, label);
+            if (state.audioEnabled) playKhimNote(880.00);
+            showToast('🏮', 'ปล่อยโคมยี่เป็งคู่ขึ้นสู่ท้องฟ้าแล้ว!');
+        }
+
+        // คลิกบน Canvas (คลิกที่กระทงเพื่ออ่านคำอธิษฐาน หรือคลิกบนฟ้าเพื่อจุดพลุหัวใจ)
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // ตรวจสอบว่าคลิกโดนกระทงคู่ของเราหรือไม่
+            if (coupleKrathong) {
+                const dist = Math.hypot(clickX - coupleKrathong.x, clickY - (coupleKrathong.y - 20));
+                if (dist < 75) {
+                    showWishCard(coupleKrathong);
+                    return;
+                }
+            }
+
+            // ถ้าคลิกบริเวณท้องฟ้า ให้จุดพลุหัวใจตรงจุดที่คลิก
+            if (clickY < horizonY) {
+                spawnHeartFirework(clickX, clickY);
+                if (state.audioEnabled) playKhimNote(783.99);
+            } else {
+                // ถ้าคลิกบนผิวน้ำ สร้างระลอกคลื่นน้ำ
+                ripples.push({ x: clickX, y: clickY, radius: 10, alpha: 0.65 });
+            }
+        });
+
+        // แสดงการ์ดคำอธิษฐาน
+        function showWishCard(krathong) {
+            if (!krathong) return;
+            document.getElementById('modalNames').textContent = `${krathong.myName} ❤️ ${krathong.partnerName}`;
+            document.getElementById('modalWishText').textContent = `"${krathong.wish}"`;
+            document.getElementById('wishModal').classList.remove('hidden');
+        }
+
+        function closeWishModal(e) {
+            document.getElementById('wishModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 8. ระบบถ่ายรูปที่ระลึก (Capture Memory)
+        // ==========================================
+        function openMemoryModal() {
+            // บังคับวาดเฟรมปัจจุบันและจับภาพจาก Canvas
+            const dataUrl = canvas.toDataURL('image/png');
+            document.getElementById('memorySnapshotImg').src = dataUrl;
+
+            const n1 = coupleKrathong ? coupleKrathong.myName : (document.getElementById('myNameInput').value.trim() || 'ฉัน');
+            const n2 = coupleKrathong ? coupleKrathong.partnerName : (document.getElementById('partnerNameInput').value.trim() || 'เธอ');
+            const wish = coupleKrathong ? coupleKrathong.wish : (document.getElementById('wishInput').value.trim() || romanticWishes[0]);
+
+            document.getElementById('memoryNames').textContent = `${n1} ❤️ ${n2}`;
+            document.getElementById('memoryWish').textContent = `"${wish}"`;
+
+            // วันที่ภาษาไทย
+            const today = new Date();
+            const thaiDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('memoryDate').textContent = thaiDate;
+
+            document.getElementById('memoryModal').classList.remove('hidden');
+        }
+
+        function closeMemoryModal() {
+            document.getElementById('memoryModal').classList.add('hidden');
+        }
+
+        function downloadMemoryImage() {
+            const link = document.createElement('a');
+            link.download = `ลอยกระทงคู่รัก-${state.myName || 'เรา'}-${state.partnerName || 'สองคน'}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('📸', 'บันทึกภาพบรรยากาศลอยกระทงเรียบร้อย!');
+        }
+
+        function toggleCleanView() {
+            closeMemoryModal();
+            document.body.classList.add('memory-mode');
+            document.getElementById('exitCleanViewBtn').classList.remove('hidden');
+            showToast('✨', 'ซ่อนปุ่มควบคุมแล้ว สามารถแคปหน้าจอได้เลย!');
+        }
+
+        function exitCleanView() {
+            document.body.classList.remove('memory-mode');
+            document.getElementById('exitCleanViewBtn').classList.add('hidden');
+        }
+
+        // แสดงข้อความแจ้งเตือนด้านบน
+        let toastTimeout;
+        function showToast(icon, message) {
+            const toast = document.getElementById('toastMsg');
+            document.getElementById('toastIcon').textContent = icon;
+            document.getElementById('toastText').textContent = message;
+
+            toast.classList.remove('opacity-0', '-translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-2');
+            }, 3000);
+        }
+
+        // ==========================================
+        // 9. เริ่มต้นการทำงานทั้งหมดเมื่อโหลดหน้าเว็บเสร็จ
+        // ==========================================
+        window.addEventListener('resize', resizeCanvas);
+
+        window.onload = function() {
+            resizeCanvas();
+            initAmbientKrathongs();
+            for (let i = 0; i < 5; i++) spawnLantern(false);
+            updatePreview();
+            requestAnimationFrame(renderScene);
+        };
+    </script>
+</body>
+</html>
